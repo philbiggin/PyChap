@@ -5,6 +5,13 @@ A Python 3 reimplementation of the core analysis performed by **CHAP**
 built on [MDAnalysis](https://www.mdanalysis.org/) so it reads real
 GROMACS `.xtc` trajectories directly.
 
+<<<<<<< HEAD
+=======
+Phil Biggin with (significant!) help from Claude AI.   06/08/2026
+
+Will probably merge into [channotation](https://github.com/channotation/chap) repo at some point.
+
+>>>>>>> 390281847983eb3ade70642a1988fca4a5f9898f
 CHAP upstream finds the permeation pathway through an ion channel or
 other membrane pore in a molecular dynamics simulation, reports a pore
 radius profile along that pathway, and annotates it with physicochemical
@@ -317,12 +324,8 @@ the real 4PIR example data). See `scripts/vmd/README.md` and
 Upstream CHAP is a mature, peer-reviewed (Klesse et al., *J. Mol. Biol.*
 2019) C++ tool of roughly 800 commits, linked directly against
 `libgromacs` and using Boost/LAPACKE for spline fitting and constrained
-optimisation. **This is not a line-for-line port of that code** — that
-would be a multi-week (probably multi-month) undertaking. Instead,
-`pychap` reimplements the same *conceptual* algorithm from scratch, in
-Python, at a scope agreed with the user as: core pathfinding + radius
-profile + hydrophobicity mapping, with simplified (but validated)
-numerics, and no dependency on `libgromacs` itself.
+optimisation. **This is not a line-for-line port of that code**  Instead,
+`pychap` reimplements the same *conceptual* algorithm from scratch and no dependency on `libgromacs` itself.
 
 **What is included:**
 
@@ -406,39 +409,6 @@ numerics, and no dependency on `libgromacs` itself.
    average of the Wimley-White whole-residue interfacial scale, rather
    than CHAP's exact mapping method.
 
-### How this was built and tested
-
-This port was developed and unit-tested in a network-restricted sandbox
-that could not reach PyPI to install SciPy, MDAnalysis, or pytest, and
-could not reach the PDB/RCSB or GitHub's raw file hosts to download the
-4PIR example data directly (the bundled `examples/data/` files were
-provided directly by the user instead). As a result:
-
-- The core algorithm (`pychap.spline`, `pychap.pathfinding`,
-  `pychap.hydrophobicity`, `pychap.analysis`, `pychap._numerics`,
-  `pychap.pdb_import`, `pychap.pdb_export`, `pychap.obj_export`,
-  `pychap.tube`) has **no hard dependency on MDAnalysis or SciPy**, and
-  was fully exercised and validated in that environment — including
-  against synthetic pores with known analytic radii (see "Validation"
-  below), *and* against the real 4PIR structure (see "Examples" above),
-  read with PyChap's own dependency-free PDB parser, which produced a
-  physically sensible pathway and radius profile.
-- `pychap.trajectory.Trajectory` (and therefore real `.gro`/`.xtc`
-  reading, and `run_4pir_trajectory_example.py`) uses the standard,
-  documented MDAnalysis API (`mda.Universe(topology, trajectory)`,
-  `.select_atoms()`, `.trajectory[i]`, `.positions`, `.elements`) but
-  **could not be executed in the build environment**, since MDAnalysis
-  could not be installed there. The relevant tests
-  (`tests/test_trajectory.py`) are written with
-  `@unittest.skipUnless(HAS_MDANALYSIS, ...)` so they run automatically
-  once you `pip install -r requirements.txt` on a machine with normal
-  internet access, but they were not run as part of this build. **Please
-  run `python -m unittest discover -s tests -v` after installing
-  dependencies to confirm this path works in your environment before
-  relying on it.**
-- The VMD and PyMOL visualisation scripts were likewise written against
-  documented APIs but could not be run against real VMD/PyMOL
-  installations — see "Molecular graphics" above.
 
 ## Validation
 
