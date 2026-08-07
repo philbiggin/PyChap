@@ -1,0 +1,258 @@
+# pychap pathway material file, coloured by hydrophobicity (kcal/mol)
+# 32 discrete bins approximating the 'BrBG_r' colormap
+newmtl bin_0
+Kd 0.0005 0.2547 0.2095
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_1
+Kd 0.0017 0.3063 0.2661
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_2
+Kd 0.0031 0.3645 0.3297
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_3
+Kd 0.0239 0.4188 0.3875
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_4
+Kd 0.0879 0.4791 0.4478
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_5
+Kd 0.1519 0.5394 0.5080
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_6
+Kd 0.2078 0.5922 0.5608
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_7
+Kd 0.3116 0.6669 0.6300
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_8
+Kd 0.4039 0.7333 0.6915
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_9
+Kd 0.4962 0.7998 0.7530
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_10
+Kd 0.5839 0.8374 0.7984
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_11
+Kd 0.6712 0.8730 0.8427
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_12
+Kd 0.7586 0.9087 0.8870
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_13
+Kd 0.8158 0.9261 0.9103
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_14
+Kd 0.8794 0.9413 0.9325
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_15
+Kd 0.9360 0.9549 0.9522
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_16
+Kd 0.9613 0.9538 0.9339
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_17
+Kd 0.9627 0.9358 0.8647
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_18
+Kd 0.9639 0.9198 0.8032
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_19
+Kd 0.9541 0.8923 0.7324
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_20
+Kd 0.9258 0.8455 0.6463
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_21
+Kd 0.8975 0.7988 0.5602
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_22
+Kd 0.8671 0.7458 0.4717
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_23
+Kd 0.8327 0.6758 0.3856
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_24
+Kd 0.7884 0.5859 0.2749
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_25
+Kd 0.7490 0.5059 0.1765
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_26
+Kd 0.6941 0.4542 0.1388
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_27
+Kd 0.6235 0.3878 0.0903
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_28
+Kd 0.5608 0.3287 0.0473
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_29
+Kd 0.4930 0.2847 0.0342
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_30
+Kd 0.4241 0.2441 0.0281
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
+newmtl bin_31
+Kd 0.3552 0.2035 0.0219
+Ka 0.0 0.0 0.0
+Ks 0.15 0.15 0.15
+Ns 10.0
+d 1.0
+illum 2
+
