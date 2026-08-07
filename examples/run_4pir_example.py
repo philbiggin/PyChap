@@ -36,7 +36,12 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from pychap.analysis import FrameResult, aggregate_frame_results, build_residue_summary  # noqa: E402
+from pychap.analysis import (  # noqa: E402
+    FrameResult,
+    aggregate_frame_results,
+    build_residue_summary,
+    plane_centroid_uv,
+)
 from pychap.hydrophobicity import (  # noqa: E402
     WIMLEY_WHITE_INTERFACE,
     hydrophobicity_profile,
@@ -101,9 +106,12 @@ def main():
     # A good starting guess for the pore centre in the plane perpendicular
     # to `axis` -- the protein centroid -- matters a lot here, since (unlike
     # the synthetic examples) this structure's coordinates are absolute
-    # simulation-box coordinates, not centred on the pore axis.
-    other = [i for i in range(3) if i != axis]
-    seed_uv = tuple(protein.positions[:, other].mean(axis=0))
+    # simulation-box coordinates, not centred on the pore axis. This is the
+    # same automatic seeding pychap.analysis.PoreAnalysis now does by
+    # default (see plane_centroid_uv) -- done explicitly here since this
+    # script calls compute_pore_profile directly rather than going through
+    # PoreAnalysis (no MDAnalysis needed for a single static structure).
+    seed_uv = plane_centroid_uv(protein.positions, axis)
     print(f"  seeding pathway search at ({seed_uv[0]:.1f}, {seed_uv[1]:.1f}) A (protein centroid)")
 
     print(f"Computing permeation pathway and radius profile (axis={args.axis}) ...")

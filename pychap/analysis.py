@@ -29,6 +29,19 @@ from .residues import project_residues
 from .trajectory import Trajectory
 
 
+def plane_centroid_uv(positions, axis: int) -> tuple[float, float]:
+    """Centroid of `positions` in the plane perpendicular to `axis`.
+
+    Used as the automatic starting point (``seed_uv``) for the pathway
+    search when the caller hasn't supplied one -- see the ``seed_uv``
+    parameter of :class:`PoreAnalysis`. Real structures are usually
+    stored in absolute simulation-box coordinates, not centred on the
+    pore axis, so this is a much safer default than the origin.
+    """
+    other = [i for i in range(3) if i != axis]
+    return tuple(np.asarray(positions)[:, other].mean(axis=0))
+
+
 @dataclass
 class FrameResult:
     """Per-frame pathway/radius/hydrophobicity result."""
@@ -262,6 +275,22 @@ class PoreAnalysis:
         Distance (Angstrom) from the pathway centreline within which a
         residue is considered "pore-facing" in a given frame (see
         :mod:`pychap.residues`).
+    seed_uv:
+        Optional ``(u, v)`` starting point for the pathway search, in
+        the plane perpendicular to ``axis``. If omitted (the default),
+        it is computed automatically from the centroid of the first
+        analysed frame's selected atoms in that plane. This matters:
+        real structures are typically stored in absolute simulation-box
+        coordinates, not centred on the pore axis, so seeding at the
+        origin -- as earlier versions of this class did unconditionally
+        -- can start the search far outside the structure entirely, in
+        empty space, which makes the centreline search and the
+        "distance to the nearest atom" radius calculation both
+        meaningless (in the worst case, absurdly large, near-infinite
+        results). Pass this explicitly only if the automatic centroid
+        isn't a good starting guess for your structure (e.g. a very
+        asymmetric pore where the pore axis doesn't pass close to the
+        overall centroid).
     """
 
     def __init__(
@@ -276,6 +305,7 @@ class PoreAnalysis:
         hydrophobicity_sigma: float = 5.0,
         hydrophobicity_scale: dict | None = None,
         pore_facing_cutoff: float = 12.0,
+        seed_uv: tuple[float, float] | None = None,
     ):
         self.traj = Trajectory(topology, trajectory, selection)
         self.axis = axis
@@ -285,11 +315,17 @@ class PoreAnalysis:
         self.hydrophobicity_sigma = hydrophobicity_sigma
         self.hydrophobicity_scale = hydrophobicity_scale
         self.pore_facing_cutoff = pore_facing_cutoff
+        self._seed_uv_override = seed_uv
         self._radii = self.traj.vdw_radii()
 
     def run(self, start: int = 0, stop: int | None = None, step: int = 1) -> PoreAnalysisResult:
         frame_results = []
-        seed_uv = (0.0, 0.0)
+        # None (the default) means "not seeded yet" -- computed from the
+        # first analysed frame's own atom positions on first use, below,
+        # rather than defaulting to the origin (see the `seed_uv`
+        # parameter docs on why that default is dangerous for
+        # off-centre structures). An explicit override always wins.
+        seed_uv = self._seed_uv_override
 
         residue_ids = None
         residue_names = None
@@ -298,6 +334,9 @@ class PoreAnalysis:
         residue_facing_frames = []
 
         for frame_index, positions in self.traj.iter_frames(start, stop, step):
+            if seed_uv is None:
+                seed_uv = plane_centroid_uv(positions, self.axis)
+
             profile = compute_pore_profile(
                 positions,
                 self._radii,

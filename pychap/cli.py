@@ -83,6 +83,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("-e", "--stop", type=int, default=None, help="Last frame (exclusive).")
     parser.add_argument("-step", type=int, default=1, help="Frame stride.")
+    parser.add_argument(
+        "-seed-uv",
+        type=float,
+        nargs=2,
+        default=None,
+        metavar=("U", "V"),
+        help="Starting point (u, v) for the pathway search, in the plane perpendicular "
+        "to -axis. Default: computed automatically from the selected atoms' own centroid "
+        "in that plane, which is usually right -- only pass this if that guess is poor "
+        "(e.g. a strongly asymmetric structure).",
+    )
     return parser
 
 
@@ -103,6 +114,7 @@ def main(argv=None) -> int:
         window=args.window,
         hydrophobicity_sigma=args.hydrophobicity_sigma,
         pore_facing_cutoff=args.pore_facing_cutoff,
+        seed_uv=tuple(args.seed_uv) if args.seed_uv is not None else None,
     )
 
     print(

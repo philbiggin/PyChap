@@ -5,9 +5,6 @@ A Python 3 reimplementation of the core analysis performed by **CHAP**
 built on [MDAnalysis](https://www.mdanalysis.org/) so it reads real
 GROMACS `.xtc` trajectories directly.
 
-Phil Biggin with (significant!) help from Claude AI.   06/08/2026
-
-
 CHAP upstream finds the permeation pathway through an ion channel or
 other membrane pore in a molecular dynamics simulation, reports a pore
 radius profile along that pathway, and annotates it with physicochemical
@@ -202,6 +199,16 @@ Key options (`pychap -h` for the full list):
 | `-axis` | `x`, `y`, or `z` — which axis is the approximate pore/membrane normal (default `z`) |
 | `-pore-facing-cutoff` | distance (Å) from the centreline within which a residue counts as pore-facing (default 12) |
 | `-o` | output directory (writes `pore_profile.json`, `pore_profile.csv`, `residue_summary.csv`) |
+| `-seed-uv` | starting point `(u, v)` for the pathway search, in the plane perpendicular to `-axis`. Default: computed automatically from the selected atoms' own centroid in that plane -- usually right, only pass this if that guess is poor (e.g. a strongly asymmetric structure) |
+
+**Note on `-seed-uv`:** real structures are normally given in absolute
+simulation-box coordinates, not centred on the pore axis, so the pathway
+search needs a starting guess for where the pore actually is. `pychap`
+computes one automatically (the selected atoms' centroid), so this
+almost never needs setting manually -- but if you ever see an absurdly
+large "minimum pore radius" in the output, it means the search started
+somewhere with no nearby atoms and never found the pore; passing an
+explicit `-seed-uv u v` close to the pore centre fixes it.
 
 ### Python API
 
