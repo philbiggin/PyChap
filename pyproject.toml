@@ -3,10 +3,12 @@
 # (`pip install -e .`) need setuptools' PEP 660 `build_editable` hook,
 # added in 64.0. With an older setuptools already on PATH and pip unable
 # to fetch a newer one in an isolated build (e.g. no network), pip fails
-# with "uses a build backend that is missing the 'build_editable' hook" --
-# see setup.py and README.md's Installation section for workarounds if
-# you hit that (or the older, differently-worded "requires a setup.py
-# based build" error from very old pip) in a network-restricted environment.
+# with "uses a build backend that is missing the 'build_editable' hook".
+# `pip install -e .` has turned out to be fragile across environments in
+# practice (old pip/setuptools mismatches, conda interpreters missing
+# their own pip module, ...); see README.md's Installation section --
+# in short, you don't actually need it, PyChap works fine via PYTHONPATH
+# with no installation step at all.
 requires = ["setuptools>=64.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
