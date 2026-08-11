@@ -51,6 +51,46 @@ class TestPathSpline(unittest.TestCase):
         with self.assertRaises(ValueError):
             PathSpline(np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]))
 
+    def test_rejects_all_points_collapsing_to_one_location(self):
+        # Every point is a duplicate of the first -- nothing survives the
+        # near-duplicate filter, so this should still raise, just with a
+        # different (clearer) message than a bare "path points must be
+        # strictly distinct".
+        with self.assertRaises(ValueError):
+            PathSpline(np.zeros((5, 3)))
+
+    def test_tolerates_a_near_duplicate_point_deep_into_a_long_path(self):
+        # Regression test for a real bug: a coarse centreline search can
+        # occasionally produce a step so tiny (but not exactly zero) that,
+        # once folded into a cumulative arc length that has already grown
+        # large, floating-point rounding makes the *cumulative* coordinate
+        # fail to increase -- even though the raw segment length was
+        # technically positive and so passed an earlier, less careful
+        # check. This used to surface as "x must be strictly increasing"
+        # raised directly out of pychap._numerics.CubicSpline1D, deep
+        # inside compute_pore_profile, rather than being handled here.
+        # Build a path with a healthy cumulative arc length (~130 A) by
+        # the time a point arrives that's only 1e-15 A from its
+        # predecessor -- far below float64's resolution at that scale
+        # (confirmed: 137.0 + 1e-15 == 137.0 in float64) -- and check this
+        # does not raise, and that the resulting spline is still usable.
+        points = np.array(
+            [
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 50.0],
+                [0.0, 0.0, 100.0],
+                [0.0, 0.0, 137.0],
+                [0.0, 0.0, 137.0 + 1e-15],  # collapses onto the previous point
+                [0.0, 0.0, 160.0],
+            ]
+        )
+        spline = PathSpline(points)  # should not raise
+        self.assertAlmostEqual(spline.length, 160.0, places=6)
+        s, pts = spline.resample(n=40)
+        self.assertEqual(len(s), 40)
+        np.testing.assert_allclose(pts[0], points[0], atol=1e-6)
+        np.testing.assert_allclose(pts[-1], points[-1], atol=1e-6)
+
 
 if __name__ == "__main__":
     unittest.main()
