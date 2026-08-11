@@ -51,7 +51,14 @@ def plot_pathway_profile(
 ):
     s_grid = np.array(data["s_grid_normalised"])
     mean_length = data["mean_length_angstrom"]
-    s = s_grid * mean_length
+    # pychap's own s coordinate runs 0 -> mean_length (needed internally
+    # for the spline/geometry code); shifting by half the pathway length
+    # here re-centres the *plotted* x-axis on the pathway's midpoint --
+    # matching upstream CHAP's own plots -- without touching the
+    # underlying JSON/CSV data or anything else that consumes it. Residue
+    # s-positions (below) get the same shift so they stay aligned with
+    # the profile line.
+    s = s_grid * mean_length - mean_length / 2.0
 
     radius_mean = np.array(data["radius_mean_angstrom"])
     radius_std = np.array(data["radius_std_angstrom"])
@@ -73,7 +80,7 @@ def plot_pathway_profile(
 
     residues = data.get("residue_summary") or []
     if show_residues and residues:
-        s_res = np.array([r["s_mean_angstrom"] for r in residues])
+        s_res = np.array([r["s_mean_angstrom"] for r in residues]) - mean_length / 2.0
         rho_res = np.array([r["rho_mean_angstrom"] for r in residues])
         hydro_res = np.array([r["hydrophobicity_kcalmol"] for r in residues])
         facing_fraction = np.array([r["pore_facing_fraction"] for r in residues])

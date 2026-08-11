@@ -31,7 +31,12 @@ def load_result(json_path):
 def plot_hydrophobicity_profile(data: dict, title: str | None = None):
     s_grid = np.array(data["s_grid_normalised"])
     mean_length = data["mean_length_angstrom"]
-    s_angstrom = s_grid * mean_length
+    # pychap's own s coordinate runs 0 -> mean_length (needed internally
+    # for the spline/geometry code); shifting by half the pathway length
+    # here re-centres the *plotted* x-axis on the pathway's midpoint --
+    # matching upstream CHAP's own plots -- without touching the
+    # underlying JSON/CSV data or anything else that consumes it.
+    s_angstrom = s_grid * mean_length - mean_length / 2.0
     hydro = np.array(data["hydrophobicity_mean_kcalmol"])
 
     fig, ax = plt.subplots(figsize=(7, 4.5))
