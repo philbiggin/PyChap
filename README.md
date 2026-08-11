@@ -5,8 +5,6 @@ A Python 3 reimplementation of the core analysis performed by **CHAP**
 built on [MDAnalysis](https://www.mdanalysis.org/) so it reads real
 GROMACS `.xtc` trajectories directly.
 
-
-=======
 Phil Biggin with (significant!) help from Claude AI.   06/08/2026
 
 Will probably merge into [channotation](https://github.com/channotation/chap) repo at some point.
