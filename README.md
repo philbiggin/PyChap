@@ -5,13 +5,13 @@ A Python 3 reimplementation of the core analysis performed by **CHAP**
 built on [MDAnalysis](https://www.mdanalysis.org/) so it reads real
 GROMACS `.xtc` trajectories directly.
 
-<<<<<<< HEAD
+
 =======
 Phil Biggin with (significant!) help from Claude AI.   06/08/2026
 
 Will probably merge into [channotation](https://github.com/channotation/chap) repo at some point.
 
->>>>>>> 390281847983eb3ade70642a1988fca4a5f9898f
+
 CHAP upstream finds the permeation pathway through an ion channel or
 other membrane pore in a molecular dynamics simulation, reports a pore
 radius profile along that pathway, and annotates it with physicochemical
