@@ -1,5 +1,13 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+# >=64 specifically (not just >=61) because editable installs
+# (`pip install -e .`) need setuptools' PEP 660 `build_editable` hook,
+# added in 64.0. With an older setuptools already on PATH and pip unable
+# to fetch a newer one in an isolated build (e.g. no network), pip fails
+# with "uses a build backend that is missing the 'build_editable' hook" --
+# see setup.py and README.md's Installation section for workarounds if
+# you hit that (or the older, differently-worded "requires a setup.py
+# based build" error from very old pip) in a network-restricted environment.
+requires = ["setuptools>=64.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
