@@ -111,6 +111,38 @@ class TestFindCentreline(unittest.TestCase):
         with self.assertRaises(ValueError):
             find_centreline(positions, radii, axis=3)
 
+    def test_diverged_search_raises_a_clear_error_instead_of_a_huge_radius(self):
+        # Regression test for a real report: seeding the search far from
+        # a structure (e.g. via seed_uv=(0, 0) on a structure given in
+        # absolute, off-centre simulation-box coordinates, or a stale
+        # warm-started position from a previous trajectory frame after a
+        # periodic-boundary jump) used to silently produce an
+        # astronomically large "radius" -- Nelder-Mead's expansion step
+        # roughly doubles its step size on every iteration that keeps
+        # "improving" the (unbounded) free-radius objective, so a search
+        # that never finds any nearby atom can reach ~2**150 (~1e45) in
+        # its 200-iteration budget rather than erroring. This checks that
+        # scenario now raises a clear ValueError instead.
+        positions, radii = cylindrical_pore(
+            radius=8.0, n_rings=21, n_per_ring=24, z_min=-20.0, z_max=20.0, vdw_radius=1.0
+        )
+        with self.assertRaises(ValueError):
+            find_centreline(
+                positions, radii, axis=2, n_slices=5, window=6.0, seed_uv=(5000.0, 5000.0)
+            )
+
+    def test_well_seeded_search_does_not_raise(self):
+        # Sanity check that the diverged-search guard doesn't fire on a
+        # perfectly normal, well-seeded search (i.e. it isn't just always
+        # raising, or raising on any large-but-legitimate radius).
+        positions, radii = cylindrical_pore(
+            radius=8.0, n_rings=21, n_per_ring=24, z_min=-20.0, z_max=20.0, vdw_radius=1.0
+        )
+        axis_values, centreline, radius_profile = find_centreline(
+            positions, radii, axis=2, n_slices=5, window=6.0, seed_uv=(0.0, 0.0)
+        )
+        np.testing.assert_allclose(radius_profile, 7.0, atol=0.5)
+
 
 if __name__ == "__main__":
     unittest.main()

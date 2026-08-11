@@ -233,9 +233,15 @@ class TestPoreAnalysisAutoSeedsOffCentreStructure(unittest.TestCase):
     def test_bad_manual_seed_reproduces_the_original_bug(self):
         # Sanity check that this test scenario really does exercise the bug:
         # seeding at the origin (as PoreAnalysis unconditionally did before
-        # this fix) on this off-centre structure should NOT find the true
-        # radius -- confirming the auto-seeded tests above are actually
-        # testing something real, not passing by coincidence.
+        # this fix) on this off-centre structure should fail loudly --
+        # confirming the auto-seeded tests above are actually testing
+        # something real, not passing by coincidence. It fails loudly
+        # (ValueError from the diverged-search check in
+        # pychap.pathfinding.find_centreline) rather than silently
+        # returning a wrong-but-finite answer, which is what actually
+        # used to happen here before that check was added -- see
+        # test_diverged_search_raises_instead_of_returning_nonsense below
+        # for a test that specifically pins that behaviour.
         analysis = PoreAnalysis(
             self.gro_path,
             selection="all",
@@ -245,8 +251,57 @@ class TestPoreAnalysisAutoSeedsOffCentreStructure(unittest.TestCase):
             window=5.0,
             seed_uv=(0.0, 0.0),
         )
-        result = analysis.run()
-        self.assertGreater(result.min_radius_overall, self.true_radius + 10.0)
+        with self.assertRaises(ValueError):
+            analysis.run()
+
+    def test_diverged_search_raises_instead_of_returning_nonsense(self):
+        # Pins the actual reported symptom (a wildly implausible "minimum
+        # pore radius" printed as if it were a real answer) to a clear
+        # failure instead: compute_pore_profile itself, seeded at the
+        # origin against this off-centre structure, should raise
+        # ValueError rather than return some astronomically large radius.
+        from pychap.elements import vdw_radius_for_name
+        from pychap.pathfinding import compute_pore_profile
+
+        import MDAnalysis as mda
+
+        u = mda.Universe(self.gro_path)
+        positions = u.atoms.positions.copy()
+        radii = np.array([vdw_radius_for_name(a.name) for a in u.atoms])
+
+        with self.assertRaises(ValueError):
+            compute_pore_profile(
+                positions, radii, axis=2, n_slices=21, n_resample=50, window=5.0, seed_uv=(0.0, 0.0)
+            )
+
+    def test_per_frame_reseeding_survives_a_pbc_like_jump_between_frames(self):
+        # Regression test for a real report: on a genuine multi-frame
+        # trajectory, a *later* frame diverged even with the seed_uv fix
+        # above in place, because PoreAnalysis used to warm-start each
+        # frame's search from the *previous* frame's converged position.
+        # That's a reasonable optimisation for geometrically continuous
+        # frames, but real trajectories can have discontinuities between
+        # saved frames that neither the synthetic examples nor the
+        # single-structure tests above exercise -- most commonly GROMACS
+        # periodic-boundary re-wrapping shifting the selection's apparent
+        # position by roughly a box length between frames. This builds a
+        # synthetic 2-frame trajectory where frame 1 is frame 0 translated
+        # far away in-plane (simulating exactly that), and checks
+        # PoreAnalysis (which now re-seeds every frame from its own
+        # centroid, rather than warm-starting across frames) still finds
+        # the right answer in both frames instead of diverging on frame 1.
+        from MDAnalysis.coordinates.memory import MemoryReader
+
+        analysis = PoreAnalysis(
+            self.gro_path, selection="all", axis=2, n_slices=21, n_resample=50, window=5.0
+        )
+        frame0 = analysis.traj.universe.atoms.positions.copy()
+        frame1 = frame0 + np.array([3000.0, -3000.0, 0.0], dtype=frame0.dtype)
+        analysis.traj.universe.load_new(np.stack([frame0, frame1]), format=MemoryReader)
+
+        result = analysis.run()  # should not raise
+        self.assertEqual(len(result.frames), 2)
+        self.assertAlmostEqual(result.min_radius_overall, self.true_radius, delta=1.5)
 
 
 if __name__ == "__main__":

@@ -278,19 +278,25 @@ class PoreAnalysis:
     seed_uv:
         Optional ``(u, v)`` starting point for the pathway search, in
         the plane perpendicular to ``axis``. If omitted (the default),
-        it is computed automatically from the centroid of the first
-        analysed frame's selected atoms in that plane. This matters:
-        real structures are typically stored in absolute simulation-box
-        coordinates, not centred on the pore axis, so seeding at the
-        origin -- as earlier versions of this class did unconditionally
-        -- can start the search far outside the structure entirely, in
-        empty space, which makes the centreline search and the
-        "distance to the nearest atom" radius calculation both
-        meaningless (in the worst case, absurdly large, near-infinite
-        results). Pass this explicitly only if the automatic centroid
-        isn't a good starting guess for your structure (e.g. a very
-        asymmetric pore where the pore axis doesn't pass close to the
-        overall centroid).
+        it is computed automatically, fresh for *every* analysed frame,
+        from that frame's own selected-atom centroid in that plane. This
+        matters: real structures are typically stored in absolute
+        simulation-box coordinates, not centred on the pore axis, so
+        seeding at the origin -- as earlier versions of this class did
+        unconditionally -- can start the search far outside the
+        structure entirely, in empty space, which makes the centreline
+        search and the "distance to the nearest atom" radius calculation
+        both meaningless (in the worst case, absurdly large, near-
+        infinite results; see the diverged-search check in
+        :func:`pychap.pathfinding.find_centreline`). Re-seeding every
+        frame independently (rather than warm-starting each frame from
+        the previous one's result, as an earlier version of this class
+        did) also protects against periodic-boundary-wrapping
+        discontinuities between saved trajectory frames. Pass this
+        explicitly only if the automatic per-frame centroid isn't a good
+        starting guess for your structure (e.g. a very asymmetric pore
+        where the pore axis doesn't pass close to the overall centroid);
+        it is then used unchanged for every frame.
     """
 
     def __init__(
@@ -320,12 +326,6 @@ class PoreAnalysis:
 
     def run(self, start: int = 0, stop: int | None = None, step: int = 1) -> PoreAnalysisResult:
         frame_results = []
-        # None (the default) means "not seeded yet" -- computed from the
-        # first analysed frame's own atom positions on first use, below,
-        # rather than defaulting to the origin (see the `seed_uv`
-        # parameter docs on why that default is dangerous for
-        # off-centre structures). An explicit override always wins.
-        seed_uv = self._seed_uv_override
 
         residue_ids = None
         residue_names = None
@@ -334,8 +334,29 @@ class PoreAnalysis:
         residue_facing_frames = []
 
         for frame_index, positions in self.traj.iter_frames(start, stop, step):
-            if seed_uv is None:
-                seed_uv = plane_centroid_uv(positions, self.axis)
+            # Re-seed from *this* frame's own atom centroid every time,
+            # rather than warm-starting from the previous frame's
+            # converged position. It's tempting to carry the previous
+            # frame's result forward for a smoother trajectory (this
+            # class used to do exactly that), but real trajectories can
+            # have discontinuities between saved frames that a synthetic
+            # or single-structure example never exercises -- most
+            # commonly, GROMACS periodic-boundary re-wrapping moving the
+            # selection's apparent position by a box length between one
+            # frame and the next. When that happens, carrying forward a
+            # stale position seeds the search somewhere with no atoms
+            # nearby, and it diverges (see the check in
+            # pychap.pathfinding.find_centreline). Recomputing the
+            # centroid fresh each frame is cheap and self-correcting;
+            # within a single frame, slice-to-slice warm-starting in
+            # find_centreline still gives a smooth centreline, so this
+            # doesn't lose meaningful smoothness in practice. An explicit
+            # seed_uv override, if given, is used for every frame as-is.
+            frame_seed_uv = (
+                self._seed_uv_override
+                if self._seed_uv_override is not None
+                else plane_centroid_uv(positions, self.axis)
+            )
 
             profile = compute_pore_profile(
                 positions,
@@ -344,9 +365,8 @@ class PoreAnalysis:
                 n_slices=self.n_slices,
                 n_resample=self.n_resample,
                 window=self.window,
-                seed_uv=seed_uv,
+                seed_uv=frame_seed_uv,
             )
-            seed_uv = profile.last_uv  # warm-start next frame for a smoother trajectory
 
             res_positions, res_names, res_ids = self.traj.residue_centers()
             if residue_names is None:

@@ -145,6 +145,14 @@ def find_centreline(
     axis_values = np.linspace(lo, hi, n_slices)
     other = [i for i in range(3) if i != axis]
 
+    # A physically-meaningful upper bound on any legitimate "free radius"
+    # result: no point that is actually inside the structure can be
+    # farther from its nearest atom than the structure's own overall
+    # size. If the search ever reports more than that, it has escaped
+    # into empty space with no atoms nearby -- see the diverged-search
+    # check below for what that means and how it happens.
+    structure_diagonal = float(np.linalg.norm(positions.max(axis=0) - positions.min(axis=0)))
+
     uv = np.array(seed_uv, dtype=float)
     centreline = np.zeros((n_slices, 3))
     radius_profile = np.zeros(n_slices)
@@ -162,12 +170,42 @@ def find_centreline(
             return _neg_radius_objective(candidate_uv, _s, axis, _pos, _rad)
 
         uv, neg_radius = nelder_mead_2d(objective, uv, initial_step=1.5, max_iter=200)
+        radius = -neg_radius
+
+        if radius > structure_diagonal:
+            # The Nelder-Mead search's "expansion" step doubles its step
+            # size on every iteration that keeps improving -- so once it's
+            # drifted somewhere with no atoms nearby, "radius" grows with
+            # no local maximum to converge to, and can reach astronomical
+            # (e.g. 1e40+) values within its iteration budget rather than
+            # erroring. Catching that here, at the first affected slice,
+            # turns a silently-wrong "minimum pore radius: 6e45 Angstrom"
+            # into a clear, actionable error instead.
+            raise ValueError(
+                f"pathway search diverged at axis position {s:.2f} "
+                f"(found an implausible free radius of {radius:.3g} A, "
+                f"larger than the whole structure's own bounding-box "
+                f"diagonal of {structure_diagonal:.1f} A) -- this means "
+                "the search had no atoms anywhere near its current "
+                "position. Common causes: (1) the starting seed_uv (or, "
+                "for a multi-frame trajectory, the previous frame's "
+                "position) landed outside the structure -- this often "
+                "happens when periodic-boundary wrapping has split the "
+                "selected atoms across the simulation box edge in some "
+                "frames; try re-wrapping/centreing the trajectory first "
+                "(e.g. `gmx trjconv -pbc mol -center`) before analysing "
+                "it; (2) the selection genuinely has no atoms near this "
+                "axis position -- check -axis and -sel/selection; or "
+                "(3) `window` is too small for how sparse the structure "
+                "is along the axis."
+            )
+
         point = np.empty(3)
         point[axis] = s
         point[other[0]] = uv[0]
         point[other[1]] = uv[1]
         centreline[i] = point
-        radius_profile[i] = -neg_radius
+        radius_profile[i] = radius
 
     return axis_values, centreline, radius_profile
 
